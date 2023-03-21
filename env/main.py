@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from tkinter import *
 from tkinter.ttk import *
 from tkinter.scrolledtext import ScrolledText
