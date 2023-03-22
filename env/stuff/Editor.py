@@ -10,7 +10,7 @@ class Editor(ScrolledText):
         self.builtins = ["quit", "abs", "aiter", "all", "any", "anext", "ascii", "bin", "bool", "breakpoint", "bytearray", "bytes", "callable", "chr", "classmethod", "compile", "complex", "delattr", "dict", "dir", "divmod", "enumerate", "eval", "exec", "filter", "float", "format", "frozenset", "getattr", "globals", "hasattr", "hash", "help", "hex", "id", "input", "int", "isinstance", "issubclass", "iter", "len", "list", "locals", "map", "max", "memoryview", "min", "next", "object", "oct", "open", "ord", "pow", "print", "property", "range", "repr", "reversed", "round", "set", "setattr", "slice", "sorted", "staticmethod", "str", "sum", "super", "tuple", "type", "vars", "zip"]
         self.errors = ["BaseException", "Exception", "ArithmeticError", "BufferError", "LookupError", "AssertionError", "AtributeError", "EOFError", "FloatingPointError", "GeneratorExit", "ImportError", "ModuleNotFoundError", "IndexError", "KeyError", "KeyboardInterrupt", "MemoryError", "NameError", "NotImplementedError", "OSError", "OverflowError", "RecursionError", "ReferenceError", "RuntimeError", "StopIteration", "StopAsyncIteration", "SyntaxError", "IndentationError", "TabError", "SystemError", "SystemExit", "TypeError", "UnboundLocalError", "UnicodeError", "UnicodeEncodeError", "UnicodeDecodeError", "UnicodeTranslateError", "ValueError", "ZeroDivisionError", "EnviromentError", "IOError", "WindowsError", "BlockingIOError", "ChildProcessError", "ConnectionError", "ConnectionAbortedError", "ConnectionRefusedError", "ConnectionResetError", "FileExistsError", "FileNotFoundError", "InterruptedError", "IsADirectoryError", "NotADirectoryError", "PermissionError", "ProcessLookupError", "TimeoutError"]
         self.warnings = ["Warning", "UserWarning", "DeprecationWarning", "PendingDeprecationWarning", "SyntaxWarning", "RuntimeWarning", "FutureWarning", "ImportWarning", "UnicodeWarning", "EncodingWarning", "BytesWarning", "ResourceWarning"]
-        self.groups = ["ExceptionGroup", "BaseExceptionGroup"]
+        self.error_groups = ["ExceptionGroup", "BaseExceptionGroup"]
         
         for tag in self.highlighter_dict:
             self.tag_configure(tag, foreground=self.highlighter_dict[tag])
@@ -56,3 +56,16 @@ class Editor(ScrolledText):
                         end = str(start).split(".")[0] + "." + str(int(str(start).split(".")[1]) + length.get() - 1)
                     self.tag_add("builtinerror", start, end)
                     start = end
+        for warning in self.warnings:
+            warning = "([^A-Za-z0-9_-]|\s)?" + warning + "[\s:.,\n()]"
+            start = 1.0
+            while start:
+                start = self.search(warning, start, stopindex=END, count=length, regexp=1)
+                if start:
+                    end = str(start).split(".")[0] + "." + str(int(str(start).split(".")[1]) + length.get())
+                    highlighted = self.get(start, end)
+                    if highlighted[-1:] != warning[-1:]:
+                        end = str(start).split(".")[0] + "." + str(int(str(start).split(".")[1]) + length.get() - 1)
+                    self.tag_add("builtinerror", start, end)
+                    start = end
+                    
