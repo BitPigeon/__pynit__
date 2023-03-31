@@ -3,6 +3,7 @@
 from tkinter.ttk import *
 from stuff.Editor import *
 from stuff.GetModuleContents import *
+from stuff.Menu import *
 import tkinter.messagebox as m
 import re
 import mysql.connector
