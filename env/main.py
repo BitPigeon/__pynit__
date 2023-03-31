@@ -13,6 +13,7 @@ root = Tk()
 root.geometry("700x550")
 root.title("__pynit__")
 
+menu = Menu()
 editor = Editor()
 editor.pack(fill="both", expand=True)
 root.mainloop()
