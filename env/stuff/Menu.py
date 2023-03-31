@@ -1,7 +1,7 @@
 from tkinter import *
 from tkinter.ttk import *
 
-class menu(Menubar):
+class Menu(Menubar):
     def __init__(self, parent):
         super().__init__()
         self.parent = parent
