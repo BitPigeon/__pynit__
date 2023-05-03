@@ -22,7 +22,9 @@ class Editor(ScrolledText):
 
         self.bind("<<Modified>>", self.highlight)
         self.bind("<Return>", self.indent)
+        self.bind("<F5>", self.run)
         self.bind("<Control-o>", self.open)
+        self.bind("<Control-s>", self.save)
 
         self.config(tabs=16)
         self.config(wrap="none")
@@ -105,6 +107,19 @@ class Editor(ScrolledText):
                 index += 1
 
         self.edit_modified(0)
+
+    def run(self, _):
+        pass
+
+    def save(self, _):
+        if not self.path:
+            home = os.environ['HOME']
+            file = filedialog.asksaveasfile(title="Save Your File", initialdir=home)
+            self.path = file.name
+        else:
+            file = open(self.path, "w")
+        file.write(self.get(1.0, END))
+        file.close()
 
     def indent(self, _):
 
