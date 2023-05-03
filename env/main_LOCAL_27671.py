@@ -126,7 +126,7 @@ class Editor(ScrolledText):
         file.close()
 
 root = Tk()
-root.geometry("750x500")
+root.geometry("700x550")
 root.title("__pynit__")
 
 editor = Editor()
