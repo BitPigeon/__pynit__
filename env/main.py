@@ -19,7 +19,7 @@ class Output:
 class Error:
     def write(self, string):
         output.config(state="normal")
-        output.insert(END, string)
+        output.insert(END, string, "err")
         output.config(state="disabled")
 
 class Editor(ScrolledText):
@@ -197,6 +197,7 @@ class Out(ScrolledText):
         self.config(font=("Liberation Mono", 9))
 
         self.tag_configure("header", foreground="Gray80", justify="center", font=("Liberation Mono", 9, "bold"))
+        self.tag_configure("err", foreground="red")
 
         self.bind("<BackSpace>", self.clear)
 
