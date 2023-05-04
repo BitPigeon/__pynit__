@@ -2,8 +2,25 @@
 
 from tkinter import END, Tk, filedialog
 from tkinter.scrolledtext import ScrolledText
+from threading import Thread
 import re
 import os
+import sys
+
+class Input:
+    pass
+
+class Output:
+    def write(self, string):
+        output.config(state="normal")
+        output.insert(END, string)
+        output.config(state="disabled")
+
+class Error:
+    def write(self, string):
+        output.config(state="normal")
+        output.insert(END, string)
+        output.config(state="disabled")
 
 class Editor(ScrolledText):
     
@@ -25,6 +42,7 @@ class Editor(ScrolledText):
         self.bind("<F5>", self.run)
         self.bind("<Control-o>", self.open)
         self.bind("<Control-s>", self.save)
+        self.bind("<Control-l>", self.thread_lint)
 
         self.config(tabs=16)
         self.config(wrap="none")
@@ -34,6 +52,7 @@ class Editor(ScrolledText):
         self.config(font=("Liberation Mono", 9))
 
         self.path = None
+        self.saved = True
     
     def highlight(self, e):
 
@@ -107,9 +126,36 @@ class Editor(ScrolledText):
                 index += 1
 
         self.edit_modified(0)
+        self.saved = False
 
     def run(self, _):
-        pass
+        if (not self.path) or (not self.saved):
+            self.save(0)
+        output.config(state="normal")
+        output.insert(END, f"RUN - {self.path.upper()}")
+        output.tag_add("header", "end-1c linestart", "end-1c lineend")
+        output.insert(END, "\n")
+        output.config(state="disabled")
+        with open(self.path) as file:
+            exec(file.read())
+
+    def thread_lint(self, _):
+        Thread(target=self.lint).start()
+
+    def lint(self):
+        if not self.path:
+            self.save(0)
+        linted = os.popen("pylint " + self.path)
+        output.config(state="normal")
+        output.insert(END, f"LINT - {self.path.upper()}")
+        output.tag_add("header", "end-1c linestart", "end-1c lineend")
+        output.insert(END, "\n")
+        output.config(state="disabled")
+        lint = linted.read()
+        output.config(state="normal")
+        output.insert(END, "\n" + lint)
+        output.config(state="disabled")
+        linted.close()
 
     def save(self, _):
         if not self.path:
@@ -120,6 +166,7 @@ class Editor(ScrolledText):
             file = open(self.path, "w")
         file.write(self.get(1.0, END))
         file.close()
+        self.saved = True
 
     def indent(self, _):
 
@@ -140,10 +187,38 @@ class Editor(ScrolledText):
         self.insert(1.0, file.read())
         file.close()
 
+class Out(ScrolledText):
+    def __init__(self):
+        super().__init__()
+
+        self.config(state="disabled")
+        self.config(tabs=16)
+        self.config(relief="flat")
+        self.config(font=("Liberation Mono", 9))
+
+        self.tag_configure("header", foreground="Gray80", justify="center", font=("Liberation Mono", 9, "bold"))
+
+        self.bind("<BackSpace>", self.clear)
+
+    def clear(self, _):
+        self.config(state="normal")
+        self.delete(1.0, END)
+        self.config(state="disabled")
+
 root = Tk()
+
 root.geometry("750x500")
 root.title("__pynit__")
 
 editor = Editor()
+
+output = Out()
+
 editor.pack(fill="both", expand=True)
+output.pack(fill="both", expand=True)
+
+sys.stdout = Output()
+sys.stderr = Error()
+
 root.mainloop()
+
