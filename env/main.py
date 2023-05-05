@@ -3,6 +3,7 @@
 from tkinter import END, Tk, filedialog
 from tkinter.scrolledtext import ScrolledText
 from threading import Thread
+import subprocess
 import re
 import os
 import sys
@@ -10,17 +11,15 @@ import sys
 class Input:
     pass
 
-class Output:
-    def write(self, string):
-        output.config(state="normal")
-        output.insert(END, string)
-        output.config(state="disabled")
+def write(string):
+    output.config(state="normal")
+    output.insert(END, string)
+    output.config(state="disabled")
 
-class Error:
-    def write(self, string):
-        output.config(state="normal")
-        output.insert(END, string, "err")
-        output.config(state="disabled")
+def err(string):
+    output.config(state="normal")
+    output.insert(END, string, "err")
+    output.config(state="disabled")
 
 class Editor(ScrolledText):
     
@@ -132,12 +131,19 @@ class Editor(ScrolledText):
         if (not self.path) or (not self.saved):
             self.save(0)
         output.config(state="normal")
-        output.insert(END, f"RUN - {self.path.upper()}")
-        output.tag_add("header", "end-1c linestart", "end-1c lineend")
+        output.insert(END, f"RUN - {self.path.upper()}", "header")
         output.insert(END, "\n")
         output.config(state="disabled")
-        with open(self.path) as file:
-            exec(file.read())
+        run = subprocess.Popen(["python3", self.path], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+        while True:
+            stdout = run.stdout.readline().decode()
+            stderr = run.stderr.readline().decode()
+            if (not stdout) and (not stderr):
+                break
+            if stdout:
+                write(stdout)
+            elif stderr:
+                err(stderr)
 
     def thread_lint(self, _):
         Thread(target=self.lint).start()
@@ -147,25 +153,29 @@ class Editor(ScrolledText):
             self.save(0)
         linted = os.popen("pylint " + self.path)
         output.config(state="normal")
-        output.insert(END, f"LINT - {self.path.upper()}")
-        output.tag_add("header", "end-1c linestart", "end-1c lineend")
+        output.insert(END, f"LINT - {self.path.upper()}", "header")
         output.insert(END, "\n")
         output.config(state="disabled")
         lint = linted.read()
         output.config(state="normal")
-        output.insert(END, "\n" + lint)
+        output.insert(END, lint)
         output.config(state="disabled")
         linted.close()
 
     def save(self, _):
-        if not self.path:
-            home = os.environ['HOME']
-            file = filedialog.asksaveasfile(title="Save Your File", initialdir=home)
-            self.path = file.name
-        else:
+        home = os.environ['HOME']
+        if self.path:
             file = open(self.path, "w")
+        else:
+            while not self.path:
+                file = filedialog.asksaveasfile(title="Save Your File", initialdir=home)
+                self.path = file.name
         file.write(self.get(1.0, END))
         file.close()
+        output.config(state="normal")
+        output.insert(END, f"SAVE - {self.path.upper()}", "header")
+        output.insert(END, "\n")
+        output.config(state="disabled")
         self.saved = True
 
     def indent(self, _):
@@ -181,11 +191,17 @@ class Editor(ScrolledText):
         return "break"
     def open(self, _):
         home = os.environ['HOME']
-        file = filedialog.askopenfile(title="Load a File", initialdir=home)
-        self.path = file.name
+        while not self.path:
+            file = filedialog.askopenfile(title="Load a File", initialdir=home)
+            self.path = file.name
         self.delete(1.0, END)
         self.insert(1.0, file.read())
         file.close()
+        output.config(state="normal")
+        output.insert(END, f"OPEN - {self.path.upper()}", "header")
+        output.insert(END, "\n")
+        output.config(state="disabled")
+        self.saved = True
 
 class Out(ScrolledText):
     def __init__(self):
@@ -194,9 +210,9 @@ class Out(ScrolledText):
         self.config(state="disabled")
         self.config(tabs=16)
         self.config(relief="flat")
-        self.config(font=("Liberation Mono", 9))
+        self.config(font=("Liberation Mono", 7))
 
-        self.tag_configure("header", foreground="Gray80", justify="center", font=("Liberation Mono", 9, "bold"))
+        self.tag_configure("header", justify="center", font=("Liberation Mono", 8, "bold"))
         self.tag_configure("err", foreground="red")
 
         self.bind("<BackSpace>", self.clear)
@@ -217,9 +233,6 @@ output = Out()
 
 editor.pack(fill="both", expand=True)
 output.pack(fill="both", expand=True)
-
-sys.stdout = Output()
-sys.stderr = Error()
 
 root.mainloop()
 
