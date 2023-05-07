@@ -4,11 +4,14 @@ A simple python editor and ide built in pure tkinter.
 
 ## How to use
 
-### Running the Application
+### Installing the Application
 
 1. Run `git clone https://github.com/bitpigeon/__pynit__.git`
-2. Run `cd __pynit__`
-3. Run `make`
+
+### Running the Application
+
+1. Run `cd __pynit__`
+2. Run `make`
 
 ### Opening a File
 
