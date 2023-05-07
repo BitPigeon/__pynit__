@@ -18,4 +18,4 @@ Not sure what you can do to help? Take a look at the [issues tab](https://github
 
 ## Remember
 
-Before you contribute, take a look at the [Code of Conduct](CODE_OF_CONDUCT).
+Before you contribute, take a look at the [Code of Conduct](CODE_OF_CONDUCT.md).
