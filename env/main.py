@@ -12,14 +12,10 @@ class Input:
     pass
 
 def write(string):
-    output.config(state="normal")
     output.insert(END, string)
-    output.config(state="disabled")
 
 def err(string):
-    output.config(state="normal")
     output.insert(END, string, "err")
-    output.config(state="disabled")
 
 class Editor(ScrolledText):
 
@@ -265,6 +261,9 @@ class Editor(ScrolledText):
         # Run the code using the python3 command.
         run = subprocess.Popen(["python3", self.path], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
 
+        # Set output state to normal, so we can insert the header.
+        output.config(state="normal")
+
         # Loop through the output.
         while True:
 
@@ -282,6 +281,8 @@ class Editor(ScrolledText):
             # If the output is an error, write it with red text.
             elif stderr:
                 err(stderr)
+        # Set output state to disabled, so the user cannot edit the output.
+        output.config(state="disabled")
 
     def thread_lint(self, _):
 
