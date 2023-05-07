@@ -7,9 +7,7 @@ import subprocess
 import re
 import os
 import sys
-
-class Input:
-    pass
+import signal
 
 def write(string):
     output.insert(END, string)
@@ -45,7 +43,7 @@ class Editor(ScrolledText):
         # Bind events to make it work properly.
         self.bind("<<Modified>>", self.highlight)
         self.bind("<Return>", self.indent)
-        self.bind("<F5>", self.thread_run)
+        self.bind("<F5>", self.run)
         self.bind("<Control-o>", self.open)
         self.bind("<Control-s>", self.save)
         self.bind("<Control-l>", self.thread_lint)
@@ -62,6 +60,7 @@ class Editor(ScrolledText):
         # Define variables
         self.path = None
         self.saved = True
+        self.run = None
 
     def highlight(self, e):
 
@@ -233,14 +232,7 @@ class Editor(ScrolledText):
         # Set the code to not saved.
         self.saved = False
 
-    def thread_run(self, _):
-
-        "Thread the run function for better performance."
-
-        # Create a new thread for the run function and start it.
-        Thread(target=self.run).start()
-
-    def run(self):
+    def run(self, _):
 
         "Run all of the code."
 
@@ -259,28 +251,17 @@ class Editor(ScrolledText):
         output.config(state="disabled")
 
         # Run the code using the python3 command.
-        run = subprocess.Popen(["python3", self.path], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+        self.run = subprocess.Popen(["python3", self.path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        # Set output state to normal, so we can insert the header.
+        # Set output state to normal, so we can insert the output.
         output.config(state="normal")
 
         # Loop through the output.
-        while True:
+        for stdout in self.run.stdout.readlines():
+            write(stdout)
+        for stderr in self.run.stderr.readlines():
+            err(stderr)
 
-            # Define stdout, sterr and stdin.
-            stdout = run.stdout.readline().decode()
-            stderr = run.stderr.readline().decode()
-
-            # If there is no output, break the loop.
-            if (not stdout) and (not stderr):
-                break
-
-            # If the output is output, write it normally.
-            if stdout:
-                write(stdout)
-            # If the output is an error, write it with red text.
-            elif stderr:
-                err(stderr)
         # Set output state to disabled, so the user cannot edit the output.
         output.config(state="disabled")
 
@@ -469,6 +450,7 @@ class Out(ScrolledText):
 
         # Bind clear function to backspace key.
         self.bind("<BackSpace>", self.clear)
+        self.bind("<Control-c>", self.quit)
 
     def clear(self, _):
 
@@ -482,6 +464,9 @@ class Out(ScrolledText):
 
         # Set output state to disabled, so the user cannot edit the output.
         self.config(state="disabled")
+    def quit(self, _):
+        if editor.run:
+            os.kill(editor.run.pid, signal.SIGINT)
 
 # Make the root window.
 root = Tk()
