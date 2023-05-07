@@ -4,12 +4,37 @@ A simple python editor and ide built in pure tkinter.
 
 ## How to use
 
-There are two ways you can do this:
+### Running the Application
 
-1. Using the shell:
-    1. Open the shell on your computer and `cd` to the main folder: `cd __pynit__`
-    2. Use the command `./env/main.py`
-2. Using a file browser:
-    1. Navigate to the folder `__pynit__`
-    2. Navigate to the folder `env`
-    3. Double click the file `main.py` and click `execute`
+1. Run `git clone https://github.com/bitpigeon/__pynit__.git`
+2. Run `cd __pynit__`
+3. Run `make`
+
+### Opening a File
+
+1. Click on the editor and press `Control+O`.
+2. Navigate through files and directories to find your file and double click it.
+
+### Creating a New File
+
+1. Click on the editor and press `Control+N`.
+
+Your current file will be saved automatically.
+
+### Saving Your File
+
+1. Click on the editor and press `Control+S`.
+2. If your file has not been saved before, navigate to the directory in which you would like to save your file, name your file and click `Save`.
+
+### Running Your File
+
+1. Click on the editor and press `F5`.
+
+Your current file will be saved automatically.
+
+### Linting Your File
+
+1. Click on the editor and press `Control+L`
+2. Wait a few seconds
+
+This will lint your file with `pylint`.
